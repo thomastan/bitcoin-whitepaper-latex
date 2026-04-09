@@ -1,0 +1,49 @@
+%%% We need to choose between:
+%%%   * fontenc -- pdflatex engine (quicker), or
+%%%   * fontspec -- xelatex / LuaLaTeX engine (supports ttf/otf fonts).
+
+%%% Of course, if any system fonts are imported for use, the latter is much easier use.  The old pdflatex engine uses legacy type fonts which are not .ttf/.otf files so they would need to be converted.
+
+%%% this file, thru the use of the IFTEX package can determine which kind of engine (pdftex, or xetex/luatex) is used, and loads the appropriate packages:
+%%%   * pdflatex: {fontenc + lmodern + fix-cm}
+%%%   * xetex/lualatex: fontspec for OTF/TTF fonts
+
+%%%% note: SELECT THE COMPILER ENGINE in Overleaf settings or on your local machine
+
+\usepackage{iftex}  % modern way -- no more ifxetex nor ifluatex now
+
+\ifPDFTeX
+   \usepackage{anyfontsize}
+   \usepackage[T1]{fontenc}  % pdflatex (for using \textquotedbl)
+   \usepackage{lmodern}      % better unicode, glyphs, etc.
+   % \usepackage[regular]{mlmodern} % more modern, but too thick
+   \usepackage{fix-cm}  % allows decimal font size scaling
+\else
+   \usepackage{fontspec}     % xelatex & lualatex (\showhyphens will warn)
+\fi
+ 
+\usepackage[fontsize=9.5pt]{fontsize} %% is this needed for setmainfont?
+
+% % Scale-up a smaller version of the font, or scale-down a larger version:
+% \setmainfont{Latin Modern Roman}[  % FONTSPEC needed for \setmainfont{}
+%     SizeFeatures =
+%         {{Size={-}, DesignSize=30} }
+% ]
+
+% use microtype for font expansion and punctuation protrusion into margin
+\usepackage[
+    activate={true,nocompatibility},
+    final, % Ensures it works in the final PDF
+    tracking=true, % Proper spacing for small caps
+    factor=1200, % Amount of protrusion
+    % expansion=\ifpdf true\else false\fi, % non-dvi only
+    stretch=50, % expansion is subtle with 10
+    % shrink=10 % shrink is subtle with 10
+]{microtype}
+
+% only allow some fonts (lmr, lmss, lmtt) to expand
+\DeclareMicrotypeSet[expansion]{expandable}{ family = {lmr, lmss, lmtt, lmsy} }
+% and only on pdflatex, not latex
+\ifpdf \microtypesetup{expansion=expandable}
+\else  \microtypesetup{expansion=false}
+\fi

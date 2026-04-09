@@ -1,0 +1,71 @@
+% The purpose of this is to simply enable a "draft" mode where the output
+% is a single, long PDF page, thanks to the 'standalone' package.
+%
+% However, in this mode, we prefer:
+%    *  paragraph vertical separation instead of indentation.
+%    *  a bit more "above" spacing on top of section headings.
+% Also, this breaks a few things:
+%    *  because a base "width" doesn't really exist in LaTeX, we give
+%       varwidth (below) a hardcoded width.
+%    *  \maketitle breaks, so we just recreate it.
+%    *  the enumerate and itemize lists grow the vertical spacing
+%       above & below the lists, so we just fix that be eliminating them.
+
+\usepackage{etoolbox}
+
+\makeatletter
+
+\@ifclassloaded{standalone}{
+    \usepackage{varwidth}
+    \standaloneconfig{varwidth=17cm, border=4em}
+    \usepackage{parskip}
+    \usepackage{titlesec}
+
+    \titlespacing*{\section}{0pt}
+        {3.5ex plus 1ex minus .2ex}
+        {1.2ex plus .2ex}
+
+    % FIX: spacing under "References" section heading was bad
+    \AtBeginDocument{
+        \@ifpackageloaded{biblatex}{
+            \defbibheading{bibliography}[\refname]{
+                \section*{#1}
+                % \addvspace is better than \vspace here—it prevents 
+                % double-spacing by checking the existing parskip first.
+                \addvspace{1.2em}
+            }
+        }{}
+    }
+
+    % BUGFIX: \maketitle didn't work properly in minipage env
+    \renewcommand{\maketitle}{
+        \setlength{\parskip}{1.2em plus 0.2em minus 0.1em}%
+        \setlength{\parindent}{0pt}%
+        \begin{center}
+            {\LARGE \@title \par} \vspace{1em}
+            {\large \@author \par} \vspace{1em}
+            {\small \@date \par}
+        \end{center}
+    }
+
+    % FIX: enumerate and itemize LISTS had too much space above + below
+    \AtBeginEnvironment{enumerate}{
+        \setlength{\topsep}{0pt}
+        \setlength{\partopsep}{0pt}
+    }
+    % \AtBeginEnvironment{itemize}{    % itemize was not actually used
+    %     \setlength{\topsep}{0pt}     % itemize was not actually used
+    %     \setlength{\partopsep}{0pt}  % itemize was not actually used
+    % }
+
+    % need to also pull back extra 'parskip' that the *varwidth env*s add.
+    \BeforeBeginEnvironment{enumerate}{\vspace{-1.1em}}
+    \AfterEndEnvironment{enumerate}{\vspace{-1em}}
+    % \BeforeBeginEnvironment{itemize}{\vspace{-1em}} % itemize not used
+    % \AfterEndEnvironment{itemize}{\vspace{-1em}}    % itemize not used
+    
+}{  % in normal "Print" mode, use geometry pkg for margins, spacing, etc.
+    \usepackage{geometry}
+}
+
+\makeatother

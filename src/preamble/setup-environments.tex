@@ -1,0 +1,69 @@
+% Adjust:  abstract / enumerate / verbatin / minted  environments
+
+% Check "Abstract" font and 'normalfont', and add a separating *COLON*, if
+%   *  matching font, or mismatching boldness
+\makeatletter
+
+\newcommand{\abstractColonLogic}{%
+  \begingroup
+    \normalfont
+    \edef\bodyFontFamily{\f@family}%
+    \edef\bodyFontSeries{\f@series}%
+    \abstractnamefont
+    \edef\labelFontFamily{\f@family}%
+    \edef\labelFontSeries{\f@series}%
+    \def\tempColon{0}%
+    \ifx\bodyFontFamily\labelFontFamily \def\tempColon{1}\fi
+    \ifx\bodyFontSeries\labelFontSeries \else \def\tempColon{1}\fi
+    \if\tempColon 1:%
+    \fi
+  \endgroup
+}
+\makeatother
+
+% Format "Abstract: " as leading word (no colon if "Abstract") in different font
+\renewenvironment{abstract}
+    {\begin{quotation}\noindent{\abstractnamefont\abstractname\abstractColonLogic}\space\normalfont\normalcolor}
+    {\end{quotation}}
+
+% customizes ALL levels of enumerate
+\usepackage{enumitem}
+\setlist[enumerate]{
+    label=\arabic*),
+    % nosep,
+    itemsep=1ex,
+    parsep=0pt,
+    topsep=6pt plus 2pt minus 2pt,  % restore LaTeX default
+}
+
+% prepare/setup ADJUSTED SIZE for *MINTED* and *VERBATIM* environments
+\usepackage{iftex}  % need smaller size for pdflatex
+\newcommand{\customsize}{\ifTUTeX 9.33\else 9\fi pt}
+% \newcommand{\customsize}{\ifTUTeX{9.33}{8.88}pt}
+
+\newcommand{\adjustedsize}{
+   \fontsize{\customsize}{12pt}\selectfont  % temp baselineskip (overwritten)
+   \setlength{\baselineskip}{1.2\fontdimen6\font}%
+}
+
+% adjust *verbatim* SIZE
+\makeatletter
+    \def\verbatim@font{\adjustedsize\ttfamily}
+\makeatother
+
+% adjust *minted* SIZE
+\usepackage{minted}
+\setminted{
+    escapeinside=@@,  % allow manual formatting inside of minted env's
+    fontsize=\adjustedsize,
+}
+
+% Remove need for \noindent after verbatim
+\usepackage{noindentafter}
+\NoIndentAfterEnv{verbatim}
+% Doesn't work for \inputminted{lang}{file} -- that's done manually in TEX-ENGINE-MODS.tex, since this pkg could not "eat" indentations in text placed AFTER a blank line.
+
+% These two commands are provided by TEX-ENGINE-MODS.tex for use in the main document.
+\providecommand{\explicitindent}{\relax}
+\providecommand{\indentpar}{\relax}
+% In cases where TEX-ENGINE-MODS.tex is disabled, the commands may be left throughout the document causing compilation failures.  We "provide" them here as doing nothing, just a \relax (no indentation needs to be done if TEX-ENGINE-MODS.tex is opted out of) so that the compilar process can succeed without having to remove instances of these from the main content.

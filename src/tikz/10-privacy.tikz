@@ -1,36 +1,79 @@
-\usetikzlibrary{
-    arrows.meta,% [>=Triangle]
-    fit,        % [fit=...]
-    positioning % [right=of ...]
-}
-
-\tikzset{box/.style={draw, minimum size=3em, text centered, text width=6em}}
-
-
 \begin{tikzpicture}[>=Triangle]
-\node at (0.5, 1) {Traditional Privacy Mode};
-\node (Identities) at (0, 0)  [box] {Identities};
-\node (Transactions) [box, right=of Identities] {Transactions};
-\node (TrustedThirdParty) [box, right=of Transactions] {Trusted\\Third Party};
-\node (Counterparty) [box, right=of TrustedThirdParty] {Counterparty};
-\node (Public) [box, right=of Counterparty] {Public};
+    % 1. Global spacing variables
+    \def\hdist{9em}   % Increased slightly to accommodate wider boxes
+    \def\vdist{7em}     % Vertical spacing between models
+    \def\sepheight{4em} % Taller separator for the taller boxes
 
-\draw (Identities) -- (Transactions);
-\draw [->] (Transactions) -- (TrustedThirdParty);
-\draw [->] (TrustedThirdParty) -- (Counterparty);
-\path (Counterparty) -- node (Midway)[midway] {} (Public);
-\draw (Midway)++(0, 0.8) --+ (0, -1.6);
-\end{tikzpicture}
+    \tikzset{
+        % Style for Identities and Transactions
+        smallbox/.style={
+            draw,
+            minimum width=6em,
+            minimum height=2em,
+            outer sep=0pt,
+            text centered
+        },
+        % Style for TTP, Counterparty, and Public (Uniform dimensions)
+        largebox/.style={
+            draw,
+            minimum width=6em,
+            minimum height=6.5ex,
+            align=center,
+            outer sep=0pt,
+            inner ysep=1ex,
+            text centered
+        },
+        title/.style={
+            anchor=south west,
+            font=\bfseries,
+            inner sep=0pt,
+            yshift=1.5em
+        },
+        sep line/.style={
+            draw,
+            thin
+        }
+    }
 
-\bigskip
+    % --- TRADITIONAL PRIVACY MODEL ---
+    \begin{scope}[local bounding box=Traditional]
+        % Nodes
+        \node (T-Ident) [smallbox] at (0,0) {Identities};
+        \node (T-Trans) [smallbox] at (\hdist, 0) {Transactions};
+        \node (T-TTP)   [largebox] at (2*\hdist, 0) {Trusted\\Third Party};
+        \node (T-CP)    [largebox] at (3*\hdist, 0) {Counterparty};
+        \node (T-Pub)   [largebox] at (4*\hdist, 0) {Public};
 
-\begin{tikzpicture}[>=Triangle]
-\node at (0.5, 1) {New Privacy Model};
-\node (Identities) at (0, 0)  [box] {Identities};
-\node (Transactions) [box, right=of Identities] {Transactions};
-\node (Public) [box, right=of Transactions] {Public};
+        % Title
+        \node [title] at (T-Ident.north west) {Traditional Privacy Model};
 
-\draw [->] (Transactions) -- (Public);
-\path (Identities) -- node (Midway)[midway] {} (Transactions);
-\draw (Midway)++(0, 0.8) --+ (0, -1.6);
+        % Connections
+        \draw (T-Ident) -- (T-Trans);
+        \draw [->] (T-Trans) -- (T-TTP);
+        \draw [->] (T-TTP) -- (T-CP);
+
+        % Vertical Separator (between Counterparty and Public)
+        \draw [sep line] ($(T-CP.east)!0.5!(T-Pub.west) + (0, \sepheight/2)$) 
+                      -- ++(0, -\sepheight);
+    \end{scope}
+
+    % --- NEW PRIVACY MODEL ---
+    \begin{scope}[yshift=-\vdist, local bounding box=New]
+        % Nodes
+        % Horizontal alignment: Ident(0), Trans(\hdist), Pub(2*\hdist)
+        \node (N-Ident) [smallbox] at (0,0) {Identities};
+        \node (N-Trans) [smallbox] at (\hdist, 0) {Transactions};
+        \node (N-Pub)   [largebox] at (2*\hdist, 0) {Public};
+
+        % Title
+        \node [title] at (N-Ident.north west) {New Privacy Model};
+
+        % Connections
+        \draw [->] (N-Trans) -- (N-Pub);
+
+        % Vertical Separator (between Identities and Transactions)
+        \draw [sep line] ($(N-Ident.east)!0.5!(N-Trans.west) + (0, \sepheight/2)$) 
+                      -- ++(0, -\sepheight);
+    \end{scope}
+
 \end{tikzpicture}

@@ -70,14 +70,6 @@
         \node (B2-H3) [intermediate_box, inner xsep=0.5pt, text width=3em] at ($(B2-H23.south) + (1.75em, -\nodevsep)$) {Hash3};
         \node (B2-Tx3) [box, below=2.5em of B2-H3] {Tx3};
 
-
-
-
-        %%%% DEBUG
-        % \node (B2-H0) [box, inner xsep=0.5pt, text width=3em] at ($(B2-H01.south) + (-1.75em, -\nodevsep)$) {Hash0};
-        % \node (B2-H1) [intermediate_box, inner xsep=0.5pt, text width=3em] at ($(B2-H01.south) + (1.75em, -\nodevsep)$) {Hash1};
-        
-
         % Connections
         \draw [->] (B2-Tx3) -- (B2-H3);
         \draw [->] (B2-H2.north) -- ([xshift=-0.5em]B2-H23.south);

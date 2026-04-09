@@ -1,0 +1,119 @@
+%%% THIS file is OPTIONAL and its purpose is to FLIP a common default in LaTeX.
+
+%%% By default in LaTeX, when a displayed math equation from \[ and \] ends,
+%%% it's _common_---likely a habit---to place an empty line before the next body
+%%% of text.  If you wanted a paragraph, great.  If you meant to have a
+%%% sentence, well you got a paragraph with the indent instead -- bad.  Of
+%%% course, we could remove the blank line, but this reduces readability of the
+%%% source code -- also bad.  We could have used \noindent, but out of habit
+%%% that also gets forgotten.
+
+%%% So this TeX engine modification makes any paragraphs following a \[ \] eqn
+%%% to be NON-INDENTED.  If you really did want to start paragraph with an
+%%% indentation, just use \explicityindent or \indentpar (not \parindent, that
+%%% is a LaTeX built-in command).  We chose \indentpar because by name, it's
+%%% similar enough.  We really would like \par or \parindent, but \par is a TeX
+%%% primitive and we cannot afford to interfere with the TeX engins primitives.
+%%% \parident stores the length (it's not a command) of the paragraph
+%%% indentation that will be used by our command and any other
+
+%%% This modification also "eats" the paragraph indentation after \inputminted
+%%% code blocks.  Note: we could not use a simple \usepackage{noindentafter}
+%%% \NoIndentAfterCmd{inputminted} because it could not "eat" the pre-paragraph
+%%% spacing.
+
+\makeatletter
+\ExplSyntaxOn
+
+% 1. Store original engine and capture document indent
+\cs_new_eq:NN \__proj_saved_par: \par
+\dim_new:N \g_proj_stored_indent_dim
+\bool_new:N \g_proj_block_exit_bool
+\bool_new:N \g_proj_par_break_bool
+\bool_new:N \g_proj_force_indent_bool
+
+\AtBeginDocument {
+  \dim_gset:Nn \g_proj_stored_indent_dim { \parindent }
+}
+
+% 2. The Recursive Glue Snatcher
+\cs_new:Npn \__proj_snatch_glue: {
+  \dim_compare:nNnTF { \tex_lastskip:D } > { 0pt }
+    { \tex_unskip:D \__proj_snatch_glue: }
+    { }
+}
+
+% 3. The Unindenter Core (Ghost Anchor)
+\cs_new:Npn \__proj_apply_fix: {
+  \dim_set:Nn \parindent { 0pt }
+  \mode_leave_vertical:
+  \noindent
+  \setbox\z@\lastbox 
+  \hbox_to_zero:n { \hss } 
+  \__proj_snatch_glue:
+  \tex_unskip:D \tex_unskip:D \tex_unskip:D
+  \tex_ignorespaces:D
+  \dim_set:Nn \parindent { \g_proj_stored_indent_dim }
+}
+
+% 4. Manual Override Commands
+\cs_set:Npn \indentpar { \bool_gset_true:N \g_proj_force_indent_bool }
+\cs_set_eq:NN \explicitindent \indentpar
+
+% 5. The Hijacker
+\cs_new:Npn \__proj_hijack_par: {
+  \bool_gset_true:N \g_proj_par_break_bool
+  \__proj_saved_par:
+}
+
+% 6. The Structural Content Trigger
+\AddToHook{para/begin}[priority=max]{
+  \bool_if:NT \g_proj_block_exit_bool {
+    \bool_if:NTF \g_proj_force_indent_bool {
+      % Manual Opt-In (\indentpar / \explicitindent)
+      \dim_set:Nn \parindent { \g_proj_stored_indent_dim }
+      \tex_hskip:D \parindent
+      \bool_gset_false:N \g_proj_force_indent_bool
+    } {
+      % Default: Force Flush-Left
+      \__proj_apply_fix:
+    }
+    % Reset all state sentinels
+    \bool_gset_false:N \g_proj_block_exit_bool
+    \bool_gset_false:N \g_proj_par_break_bool
+    \cs_gset_eq:NN \par \__proj_saved_par:
+  }
+}
+
+% 7. Centralized Trigger Function
+\cs_new:Npn \__proj_arm_noindent_logic: {
+  \bool_gset_true:N \g_proj_block_exit_bool
+  \bool_gset_false:N \g_proj_par_break_bool
+  \bool_gset_false:N \g_proj_force_indent_bool
+  \dim_set:Nn \parindent { 0pt }
+  \cs_gset_eq:NN \par \__proj_hijack_par:
+  \tex_ignorespaces:D
+}
+
+% 8. Entry Points: Math, Verbatims, and Commands
+\AtBeginDocument {
+  % A. Standard Display Math
+  \AddToHook{cmd/]/after}{ \__proj_arm_noindent_logic: }
+  
+  % B. Standard Verbatim Environments -- verbatim done with:
+  % \usepackage{noindentafter}
+  % \NoIndentAfterEnv{verbatim}
+  \AddToHook{env/minted/after}{ \__proj_arm_noindent_logic: }
+  \AddToHook{env/lstlisting/after}{ \__proj_arm_noindent_logic: }
+  
+  % C. inputminted (The "Wrapper" approach)
+  % We use a manual wrapper to avoid minted's argument scanner collision.
+  \cs_set_eq:NN \__proj_orig_inputminted \inputminted
+  \RenewDocumentCommand{\inputminted}{ O{} m m }{
+    \__proj_orig_inputminted [#1] {#2} {#3}
+    \__proj_arm_noindent_logic:
+  }
+}
+
+\ExplSyntaxOff
+\makeatother

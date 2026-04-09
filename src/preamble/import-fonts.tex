@@ -1,0 +1,42 @@
+%%%%%%%%%%%%%%%%% CUSTOM FONTS in .ttf/.otf from SYSTEM %%%%%%%%%%%%%
+% only works if fontspec pkg and a ttf/otf-supporting compiler used %
+
+% make sure xcolor, (color) names and relsize are loaded _before_ using:
+\usepackage[dvipsnames]{xcolor}  % WARNING: may be loaded earlier
+\usepackage{relsize}
+
+\usepackage{iftex}  % modern way -- no more ifxetex nor ifluatex now
+
+\ifTUTeX  % "TUTeX" is a unicode engine: e.g. XeLaTeX and LuaLaTeX
+    \newfontfamily\fontBenchNine{BenchNine-Regular.ttf}[
+        Path = fonts/,
+        BoldFont = BenchNine-Bold.ttf,
+        ItalicFont = BenchNine-Regular.ttf,
+        ItalicFeatures = {FakeSlant = 0.2},
+        BoldItalicFont = BenchNine-Bold.ttf,
+        BoldItalicFeatures = {FakeSlant = 0.2},
+        FontFace = {l}{n}{Font = BenchNine-Light.ttf},
+        FontFace = {l}{it}{Font = BenchNine-Light.ttf, FakeSlant = 0.2}
+    ]
+    
+    \newfontfamily\fontMouseMemoirs{MouseMemoirs-Regular.ttf}[
+        Path = fonts/,
+        SlantedFont = MouseMemoirs-Regular.ttf,
+        SlantedFeatures = {FakeSlant = 0.2}
+    ]
+
+\else 
+    % we could fake \fontMouseMemoirs cmd with the Zac Chancery (pzc) font:
+    % \newcommand{\fontMouseMemoirs}{\fontfamily{pzc}\selectfont}
+
+    % use the COLLECTION of files in ./fonts/MouseMemoirs-pdflatex directory:
+    \pdfmapfile{+fonts/MouseMemoirs-pdflatex/MouseMemoirs.map}
+    \newcommand{\fontMouseMemoirs}{
+        \fontfamily{MouseMemoirs-TLF}\selectfont
+    }
+    % Note: the <ROOT>/latexmkrc file instructed a ./fonts// recursive search.
+\fi
+
+\newcommand{\useCustomFont}[2]  %%%% NOTE: I *slanted* & _colored_ the custom font!
+    {\slshape\textcolor{RoyalPurple}{#1\larger[1]#2}}  % can customize the [X] largeness
+% use like this:   \useCustomFont{\fontMouseMemoirs}{ text here }

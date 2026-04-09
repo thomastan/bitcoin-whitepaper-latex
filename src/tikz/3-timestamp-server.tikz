@@ -1,25 +1,75 @@
-\usetikzlibrary{
-    arrows.meta,% [>=Triangle]
-    fit,        % [fit=...]
-    positioning % [right=of ...]
-}
-
 \begin{tikzpicture}[>=Triangle]
-\tikzset{box/.style={draw, minimum size=2em, text width=2em, text centered},
-    container/.style={draw, inner sep=20pt}
-}
+    % 1. Define the internal padding as a variable (0.75em)
+    \def\csep{0.75em}
 
-\foreach \i / \x in {0/-2, 1/4} {
-    \node (P\i-Hash) [box] at (\x, 1.5) {Hash};
-    \node (Item1) [box] at (\x - 1, 0){Item};
-    \node (Item2) [box] [right=0.3cm of Item1] {Item};
-    \node (Item3) [box] [right=0.3cm of Item2] {...};
-    \node (Container) [container] [label={[shift={(8ex,-4ex)}]north west:Block}, fit=(Item1)(Item2)(Item3)] {};
+    \tikzset{
+        box/.style={
+            draw,
+            minimum height=2em,
+            text width=2.5em, 
+            text centered,
+            outer sep=0pt
+        },
+        container/.style={
+            draw,
+            inner sep=\csep 
+        }
+    }
 
-    \draw [->] (Container.north west)+(1, 0) |- ([yshift=-4]P\i-Hash.west);
-}
+    \foreach \i [remember=\i as \last (initially 0)] in {0, 1} {
+        
+        % 2. Dynamic Placement
+        \ifnum\i=0
+            \node (P\i-Hash) [box] at (0, 5em) {Hash};
+        \else
+            \node (P\i-Hash) [box, right={7*\csep} of Container\last.east |- P0-Hash] {Hash};
+        \fi
 
-\draw [<-] ([yshift=4]P0-Hash.west) --+ (-3, 0);
-\draw [->] ([yshift=4]P0-Hash.east) -- ([yshift=4]P1-Hash.west);
-\draw [->] ([yshift=4]P1-Hash.east) --+ (3, 0);
+        % 3. Ports (1/3rd logic)
+        \coordinate (UPort\i) at ($(P\i-Hash.north west)!0.33!(P\i-Hash.south west)$);
+        \coordinate (LPort\i) at ($(P\i-Hash.north west)!0.67!(P\i-Hash.south west)$);
+
+        % 4. Item Boxes 
+        \node (Item\i-1) [box, anchor=east] at (P\i-Hash.center |- 0,0) [xshift=-0.375em] {Item};
+        \node (Item\i-2) [box, right=\csep of Item\i-1] {Item};
+        \node (Item\i-3) [box, right=\csep of Item\i-2] {...};
+
+        % 5. Container fit
+        \coordinate (TopPad\i) at ($(Item\i-1.north) + (0, 1.33em)$);
+        \node (Container\i) [container, fit=(TopPad\i)(Item\i-1)(Item\i-3)] {};
+
+        % 6. "Block" Label 
+        \node[anchor=north west, xshift=0.33em, yshift=-0.33em, font=\bfseries]
+            at (Container\i.north west) {Block};
+
+        % 7. Local Block Connector
+        \coordinate (Exit\i) at (Item\i-1.west |- Container\i.north);
+        \draw[->] (Exit\i) |- (LPort\i);
+    }
+
+    % --- Global Hash Chain Connections ---
+
+    % 8. Measure the "Gap" distance
+    \path let \p1=(Container0.east), \p2=(Container1.west) in 
+        \pgfextra{
+            \pgfmathsetmacro{\gap}{\x2-\x1}
+            \global\let\gap\gap
+        };
+
+    % 9. Draw the arrows (using \gap without the extra 'pt')
+    \draw [->] ([xshift=-\gap pt]Container0.west |- UPort0) -- (UPort0);
+    
+    \coordinate (BridgeStart) at ($(P0-Hash.north east)!0.33!(P0-Hash.south east)$);
+    \draw [->] (BridgeStart) -- (UPort1);
+
+    \coordinate (ExitStart) at ($(P1-Hash.north east)!0.33!(P1-Hash.south east)$);
+    \draw [->] (ExitStart) -- ([xshift=\gap pt]Container1.east |- ExitStart);
+
+    % 10. FINAL FIX: Set the bounding box at the very end
+    % This forces the diagram to be centered based on the coordinates, 
+    % effectively ignoring the "visual weight" of the right-hand arrowhead.
+    \pgfresetboundingbox
+    \path[use as bounding box] ([xshift=-\gap pt]Container0.west |- P0-Hash.north) 
+                rectangle ([xshift=\gap pt]Container1.east |- Container0.south);
+
 \end{tikzpicture}

@@ -1,0 +1,15 @@
+\newcommand{\spaced}[1]{{\spaceskip=2.0\fontdimen2\font #1}}
+\newcommand{\n}{\textbackslash n}
+
+\begingroup
+   \catcode`\%=12
+   \catcode`\^=14
+
+\gdef\poisonline{^
+   \useCustomFont{\fontMouseMemoirs}{^
+    if (sum < 0.001)~
+       printf ("\spaced{sum=%f q=%f max=%c min=%c} \n",~ sum, q, {\upshape~7}, 0);
+   }
+}
+
+\endgroup

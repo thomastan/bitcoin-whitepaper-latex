@@ -1,0 +1,40 @@
+\usepackage{mathtools}  % amsmath not needed now
+\usepackage{array}  % this array PACKAGE is used to adjust cell spacing
+
+\usepackage{iftex}  % modern way (don't use ifxetex or ifluatex any more.)
+\ifTUTeX   % "TUTeX" is a unicode engine: e.g. XeLaTeX and LuaLaTeX
+    \usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]
+        {unicode-math}  % annotates math
+\fi
+
+\usepackage{etoolbox}  % for \AtBegin***{} cmds (Document, Environment, etc.)
+
+% Displayed math equations sometimes sit a little lower.  This recenters:
+\usepackage{calc}
+\AtBeginDocument{
+    % Scales the base, the plus (stretch), and the minus (shrink) by 0.75
+    \setlength{\abovedisplayskip}{0.66\abovedisplayskip}
+    % \setlength{\abovedisplayshortskip}{0.1\abovedisplayshortskip}
+    \setlength{\abovedisplayshortskip}{0pt} % seemingly no effect
+}
+
+% reduce/remove shrinking of n-line curly braces (i.e. "two-sided" cases)
+\usepackage{iftex}
+\ifTUTeX
+   \delimitershortfall=0pt
+%    \delimiterfactor=999
+% \else
+%    \delimitershortfall=2pt
+%    \delimiterfactor=930
+\fi
+
+% Items in an 'array' were too close to each other:
+\AtBeginEnvironment{array}{
+    \renewcommand{\arraystretch}{1.3}
+    \spaceskip=0.66ex plus 0.1ex minus 0.05ex\relax % words in 'array' env
+}
+
+% Allows more customizable spacing within the array and tabular environments
+\usepackage[column=C]{cellspace}
+    \setlength{\cellspacetoplimit}{1ex}
+    \setlength{\cellspacebottomlimit}{1ex}

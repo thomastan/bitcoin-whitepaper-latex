@@ -1,0 +1,4 @@
+\DeclareFontFamily{T1}{MouseMemoirs-TLF}{}
+\DeclareFontShape{T1}{MouseMemoirs-TLF}{m}{n}{ <-> MouseMemoirs-Regular-T1 }{}
+\DeclareFontShape{T1}{MouseMemoirs-TLF}{m}{sl}{ <-> MouseMemoirs-Slanted-T1 }{}
+\DeclareFontShape{T1}{MouseMemoirs-TLF}{m}{it}{ <-> ssub * MouseMemoirs-TLF/m/sl }{}

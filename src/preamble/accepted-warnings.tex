@@ -1,0 +1,10 @@
+\usepackage{silence}   % load this BEFORE the packages with warnings
+
+% Silence these warnings
+\WarningFilter{latex}{Command \showhyphens}  % from lualatex
+\WarningFilter{latex}{Command \underbar has changed}  % from secsty
+\WarningFilter{latex}{Command \underline has changed}  % from secsty
+\WarningFilter{biblatex}{Macro 'volume+number' undefined}
+
+% silence underfull hbox (from TeX)
+\hbadness=10001

@@ -1,25 +1,79 @@
-\usetikzlibrary{
-    arrows.meta,% [>=Triangle]
-    fit,        % [fit=...]
-    positioning % [right=of ...]
-}
-
 \begin{tikzpicture}[>=Triangle]
+    % 1. Global spacing variables
+    \def\hsep{0.75em}
+    \def\vsep{0.75em}
 
-\tikzset{box/.style={draw, minimum size=2em, text centered},
-    container/.style={inner sep=20pt}
-}
+    \tikzset{
+        box/.style={
+            draw,
+            minimum height=2em,
+            % outer sep=0pt ensures anchors are exactly on the border lines
+            outer sep=0pt,
+            text centered
+        },
+        container/.style={
+            draw,
+            inner xsep={1.5*\hsep},
+            inner ysep=\vsep
+        }
+    }
 
-\foreach \i / \x in {0/-3, 1/3} {
-    \node (P\i-PrevHash) [box] at (\x, 1) {Prev Hash};
-    \node (Nonce) [box] [right=0.3cm of P\i-PrevHash] {Nonce};
-    \node (Tx1) [box] [below=0.3cm of P\i-PrevHash]{Tx};
-    \node (Tx2) [box] [right=0.3cm of Tx1] {Tx};
-    \node (Tx3) [box] [right=0.3cm of Tx2] {...};
-    \node (P\i-Container) [container] [label={[shift={(8ex,-4ex)}]north west:Block}, fit=(P\i-PrevHash)(Tx1)(Tx2)(Tx3)] {};
-    \draw (P\i-Container.north west) -- (P\i-Container.south west) -- (P\i-Container.south east) -- (P\i-Container.north east);
-}
+    % --- STEP 1: BLOCKS AND CONTAINERS ---
+    \foreach \i [remember=\i as \last (initially 0)] in {0, 1} {
+        
+        % Placement logic
+        \ifnum\i=0
+            \node (P\i-PrevHash) [box, minimum width=6em] at (0, 0) {Prev Hash};
+        \else
+            \node (P\i-PrevHash) [box, minimum width=6em, right={7*\hsep} of P\last-Container.east |- P0-PrevHash] {Prev Hash};
+        \fi
 
-\draw [<-] (P0-PrevHash.west) --+ (-2, 0);
-\draw [->] (P0-Container.east |- P1-PrevHash.west) -- (P1-PrevHash.west);
+        % Top Row: Nonce (3.5em text width converted to minimum width for precision)
+        \node (P\i-Nonce) [box, minimum width=4em, right=\hsep of P\i-PrevHash] {Nonce};
+        
+        % DYNAMIC CALCULATION: Measure exact span from West-most to East-most edge
+        % We subtract two gaps (\hsep) to find the space remaining for the 3 boxes
+        \path let \p1=(P\i-PrevHash.west), \p2=(P\i-Nonce.east) in 
+            \pgfextra{
+                \pgfmathsetmacro{\txwidth}{(\x2-\x1 - 2*\hsep)/3}
+                \global\let\txwidth\txwidth
+            };
+
+        % Bottom Row: Tx Boxes
+        % Since we used 'minimum width' for the top, these will now align perfectly
+        \node (P\i-Tx1) [box, minimum width=\txwidth pt, 
+            below=\vsep of P\i-PrevHash.south west, anchor=north west] {Tx};
+        \node (P\i-Tx2) [box, minimum width=\txwidth pt, right=\hsep of P\i-Tx1] {Tx};
+        \node (P\i-Tx3) [box, minimum width=\txwidth pt, right=\hsep of P\i-Tx2] {...};
+        
+        % Container fit (Padding and Label preserved)
+        \coordinate (P\i-TopPad) at ($(P\i-PrevHash.north) + (0, 1.33em)$);
+        \node (P\i-Container) [container, fit=(P\i-TopPad)(P\i-Tx1)(P\i-Nonce)(P\i-Tx3)] {};
+
+        % "Block" Label (Matching your exact offsets)
+        \node[anchor=north west, xshift=0.33em, yshift=-0.33em, font=\bfseries] 
+            at (P\i-Container.north west) {Block};
+    }
+
+    % --- STEP 2: DYNAMIC GAP MEASUREMENT ---
+    \path let \p1=(P0-Container.east), \p2=(P1-Container.west) in 
+        \pgfextra{
+            \pgfmathsetmacro{\gaplen}{\x2-\x1}
+            \global\let\gaplen\gaplen
+        };
+
+    % --- STEP 3: EXTERNAL CONNECTIONS ---
+    
+    % Entry Arrow (Locked to PrevHash West)
+    \draw [->] ([xshift=-\gaplen pt]P0-Container.west |- P0-PrevHash.west) -- (P0-PrevHash.west);
+
+    % Inter-block Bridge
+    \draw [->] (P0-Container.east |- P0-PrevHash.east) -- (P1-PrevHash.west);
+
+    % --- STEP 4: BOUNDING BOX RESET ---
+    % Phantom padding on the right creates the symmetrical centering
+    \pgfresetboundingbox
+    \path[use as bounding box] ([xshift=-\gaplen pt]P0-Container.west |- P0-Container.north) 
+                rectangle ([xshift=\gaplen pt]P1-Container.east |- P0-Container.south);
+
 \end{tikzpicture}
