@@ -1,8 +1,17 @@
-# LaTeX Recreation of the Bitcoin Whitepaper
+# Latest updates
+
+- Figures are now _native_ (written in TikZ) and should match the font/look of the rest of the document, e.g.:
+
+![A native figure of Section 2's "transactions", made with TikZ](./updated-figure-sample.png "TikZ figure from Section 2 'Transactions' w/ document-matching LaTeX look")
+
+- Updates at [http://bitbucket.org/thomastan/bitcoin-paper](http://bitbucket.org/thomastan/bitcoin-paper).
+
+
+## LaTeX Recreation of the Bitcoin Whitepaper
 
 This repository contains a LaTeX version of the Bitcoin whitepaper.
 
-## Introduction
+### Introduction
 
 The Bitcoin whitepaper, one of the most important documents in the history of cryptocurrencies,
 was published in 2008 by Satoshi Nakamoto, available at https://bitcoin.org/bitcoin.pdf .
@@ -13,17 +22,17 @@ This repository contains LaTeX files which reproduce the Bitcoin whitepaper.
 This LaTeX project is aimed to be a good example for LaTeX learners
 to learn how to write a LaTeX document with mathematical formulas and TiKZ pictures.
 
-## Known Issues
+### Known Issues
 
 - The size of each part may look different from the original whitepaper.
 - The TiKZ pictures do not fit the page width well.
 - References are not exactly the same as the original whitepaper.
 
-## Thanks
+### Thanks
 
 Special thanks to [TeXiFy IDEA](https://github.com/Hannah-Sten/TeXiFy-IDEA) for making it easy to write LaTeX in a JetBrains IDE.
 
-## Disclaimer
+### Disclaimer
 
 - This repository is not affiliated with the Bitcoin Foundation or any other organization.
 - The author of this repository is not Satoshi Nakamoto.
